@@ -202,10 +202,10 @@ export class LlamaService {
     ];
     
     if (weavehelpPatterns.some((pat) => pat.test(userMessage.trim()))) {
-      return "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics.";
+      return "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics."; 
     }
 
-    // Block questions not about Proweaver or its policies/guidelines
+    // Block questions not about Proweaver or its policies/guideliness
     const allowedPatterns = [
       /proweaver/i,
       /weavehelp/i,
