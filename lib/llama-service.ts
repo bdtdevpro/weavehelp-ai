@@ -7,12 +7,13 @@ Settings.llm = new OpenAI({
   temperature: 0.2,
 });
 
-export const helpdeskInstruction = `You are a helpdesk assistant for Prowever. Scan the files and extract relevant content based on the given question. Produce a 1-2 sentence response strictly based on information found in the provided documents, focusing on accuracy, relevance, and conciseness.
+export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. Scan the files and extract relevant content based on the given question. Produce a 1-2 sentence response strictly based on information found in the provided documents, focusing on accuracy, relevance, and conciseness.
 
 # Guidelines
 
 - Responses must be 1-2 sentences long.
-- Reference only official Prowever policies and guidelines.
+- Reference only official Proweaver policies and guidelines.
+- Do NOT provide topics, answers, or information outside of Proweaver's official policies and guidelines. If asked about unrelated topics, clearly state: "I can only assist with questions about Proweaver's official policies and guidelines."
 - Deliver direct and actionable answers.
 - Request clarification if the question is unclear.
 - Avoid adding unnecessary context or explanations.
@@ -29,13 +30,18 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Prowever. S
 - For salary-related inquiries, direct users to contact Fidel Besin.
 - For NTE and IR related inquiries, direct users to contact Daryl Patumbon.
 - For Maxicare related inquiries, direct users to contact Miss Jessa Mae Ducay HR.
+- For Service Incentive Leave (SIL), RWH (Reduced Work Hours), RWD (Reduced Work Days), and leave-related questions not in documents, direct users to contact Daryl Patumbon.
+- For benefits and compensation questions not in documents, direct users to contact Fidel Besin.
+- For general HR policies not in documents, direct users to contact Miss Jessa Mae Ducay HR.
+- For any Proweaver-related question not found in documents, identify the most appropriate contact based on the topic and direct users accordingly.
 - Only provide document links for additional details if specifically requested.
-- Identify if a question is unrelated to Prowever or its policies.
+- Identify if a question is unrelated to Proweaver or its policies.
 - Always use a respectful and professional tone when answering questions about Sir JVL (Atty. Joseph V. Ladion) or Maam Gal (Gemma Ladion), acknowledging their leadership and contributions to the organization.
 - If the user explicitly requests a more detailed explanation (e.g., "can you provide more detailed explanation on it?"), you may provide a longer, more detailed response.
 - If the user asks "Who is JVL" or "Who is Atty. Joseph V. Ladion", respond: "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people."
-- If the user asks "Who is Maam Gal", "Who is Maam Gemma", or "Who is Gemma Ladion", respond: "Gemma Ladion is the graceful force behind Prowever's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Prowever's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance."
+- If the user asks "Who is Maam Gal", "Who is Maam Gemma", or "Who is Gemma Ladion", respond: "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance."
 - For questions about storage or keeping items, inform users that shoes, bulky jackets, and helmets are not allowed to be kept or stored in the office.
+- If the user asks "what other topics can you help me?", respond: "Only Proweaver policies and guidelines will be catered question."
 
 # Steps
 
@@ -49,10 +55,10 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Prowever. S
 
 # Notes
 
-- Ensure responses accurately address the user's inquiries and adhere to Prowever protocols.
-- Avoid responding to questions unrelated to Prowever or its policies.
+- Ensure responses accurately address the user's inquiries and adhere to Proweaver protocols.
+- Avoid responding to questions unrelated to Proweaver or its policies. If asked, state: "I can only assist with questions about Proweaver's official policies and guidelines."
 
-Remember: Each response MUST be 1-2 sentences long, providing clear and concise information based strictly on Prowever documentation.`;
+Remember: Each response MUST be 1-2 sentences long, providing clear and concise information based strictly on Proweaver documentation.`;
 
 // Fallback function to call n8n webhook
 async function callN8nWebhook(userMessage: string): Promise<string> {
@@ -83,8 +89,25 @@ async function callN8nWebhook(userMessage: string): Promise<string> {
     const data = await response.json();
     console.log("N8n webhook response received: ", data);
     
-    // Return the response from n8n, checking for 'output' field first
-    return data.output || data.response || data.message || "I've forwarded your question to our support team. They will get back to you shortly.";
+    // Block generic AI responses about wide range of topics
+    const output = data.output || data.response || data.message || "";
+    const genericPatterns = [
+      /assist you with a wide range of topics/i,
+      /general knowledge/i,
+      /education: help with homework/i,
+      /technology: information about latest gadgets/i,
+      /health and fitness/i,
+      /entertainment: movie recommendations/i,
+      /travel: information about destinations/i,
+      /cooking: recipes/i,
+      /news: updates on current events/i,
+      /shopping: product recommendations/i,
+      /personal management/i
+    ];
+    if (genericPatterns.some((pat) => pat.test(output))) {
+      return "I can only assist with questions about Proweaver's official policies and guidelines.";
+    }
+    return output || "I've forwarded your question to our support team. They will get back to you shortly.";
   } catch (error) {
     console.error("Error calling n8n webhook:", error);
     throw error; // Re-throw to let caller handle it
@@ -149,6 +172,41 @@ export class LlamaService {
   }
 
   async getResponse(userMessage: string): Promise<string> {
+    // Handle greeting messages
+    const greetingPatterns = [
+      /^hello\b/i,
+      /^hi\b/i,
+      /^hey\b/i,
+      /^good morning\b/i,
+      /^good afternoon\b/i,
+      /^good evening\b/i,
+      /^how are you\b/i,
+      /^how's it going\b/i,
+      /^what's up\b/i
+    ];
+    
+    if (greetingPatterns.some((pat) => pat.test(userMessage.trim()))) {
+      return "Hello! I'm Weave, your AI support assistant for Proweaver. How can I help you with our policies and guidelines today?";
+    }
+
+    // Block questions not about Proweaver or its policies/guidelines
+    const allowedPatterns = [
+      /proweaver/i,
+      /policy|policies|guideline|guidelines/i,
+      /JVL|Atty\. Joseph V\. Ladion|Maam Gal|Gemma Ladion/i,
+      /HR|human resources/i,
+      /absence|attendance|NTE|IR|Maxicare|Fidel Besin|Daryl Patumbon|Jessa Mae Ducay/i,
+      /office|storage|shoes|jackets|helmets/i,
+      /service incentive leave|SIL|leave|vacation|holiday|time off|RWH|reduced work hours|RWD|reduced work days/i,
+      /benefits|compensation|salary|pay|bonus|incentive/i,
+      /employee|staff|team member|colleague/i,
+      /work|job|position|role|responsibility/i,
+      /company|organization|business|corporate/i
+    ];
+    if (!allowedPatterns.some((pat) => pat.test(userMessage))) {
+      return "I can only assist with questions about Proweaver's official policies and guidelines.";
+    }
+
     let llamaError: Error | null = null;
     
     // First, try LlamaIndex
@@ -189,7 +247,7 @@ export class LlamaService {
       console.error("Both LlamaIndex and webhook failed. LlamaIndex error:", llamaError?.message);
       console.error("Webhook error:", (webhookError as Error).message);
       
-      return "I'm experiencing technical difficulties. For work-related questions, please contact your Supervisor or Team Lead. For policy questions, contact HR. You can also visit our HR System documents at https://office.prowever.tools/hrsystem/memo for additional information.";
+      return "I'm experiencing technical difficulties. For work-related questions, please contact your Supervisor or Team Lead. For policy questions, contact HR. You can also visit our HR System documents at https://office.Proweaver.tools/hrsystem/memo for additional information.";
     }
   }
 }

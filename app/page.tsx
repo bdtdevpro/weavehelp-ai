@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Switch } from "@/components/ui/switch"
 import { Send, Moon, Sun, Bot, User } from "lucide-react"
+import Image from "next/image"
 
 interface Message {
   id: string
@@ -40,6 +41,7 @@ export default function WeaveHelpChatbot() {
   const [isTyping, setIsTyping] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Load theme preference from session storage on component mount
   useEffect(() => {
@@ -54,6 +56,10 @@ export default function WeaveHelpChatbot() {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
     }
   }, [messages])
+
+  useEffect(() => {
+    adjustTextareaHeight()
+  }, [inputValue])
 
   const getBotResponse = async (userInput: string): Promise<string> => {
     try {
@@ -121,6 +127,13 @@ export default function WeaveHelpChatbot() {
     }
   }
 
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+    }
+  }
+
   const toggleTheme = () => {
     const newTheme = !isDarkMode
     setIsDarkMode(newTheme)
@@ -136,8 +149,14 @@ export default function WeaveHelpChatbot() {
           <Card className="mb-4 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                  <Bot className="h-6 w-6 text-primary-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full">
+                  <Image
+                    src="/weavehelp-icon.png"
+                    alt="WeaveHelp"
+                    width={70}
+                    height={70}
+                    className="rounded-full"
+                  />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-foreground">WeaveHelp</h1>
@@ -167,9 +186,13 @@ export default function WeaveHelpChatbot() {
                     <Avatar className="h-10 w-10">
                       {message.sender === "bot" ? (
                         <>
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            <Bot className="h-5 w-5" />
-                          </AvatarFallback>
+                          <Image
+                            src="/weavehelp-icon.png"
+                            alt="WeaveHelp"
+                            width={40}
+                            height={40}
+                            className="rounded-full"
+                          />
                         </>
                       ) : (
                         <>
@@ -180,14 +203,14 @@ export default function WeaveHelpChatbot() {
                       )}
                     </Avatar>
                     <div
-                      className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                      className={`max-w-[70%] rounded-lg px-4 py-2 shadow-sm ${
                         message.sender === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
                       <p
-                        className={`text-md break-words leading-relaxed ${message.sender === "bot" ? "text-[#B0B0B0]" : ""}`}
+                        className={`text-md break-words leading-relaxed ${message.sender === "bot" ? "text-foreground" : ""}`}
                         dangerouslySetInnerHTML={{
                           __html:
                             message.sender === "bot"
@@ -209,9 +232,13 @@ export default function WeaveHelpChatbot() {
                 {isTyping && (
                   <div className="flex items-start space-x-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot className="h-4 w-4" />
-                      </AvatarFallback>
+                      <Image
+                        src="/weavehelp-icon.png"
+                        alt="WeaveHelp"
+                        width={32}
+                        height={32}
+                        className="rounded-full"
+                      />
                     </Avatar>
                     <div className="rounded-lg bg-muted px-4 py-2">
                       <div className="flex space-x-1">
@@ -228,12 +255,14 @@ export default function WeaveHelpChatbot() {
             {/* Input Area */}
             <div className="border-t p-4">
               <div className="flex space-x-2">
-                <Input
+                <textarea
+                  ref={textareaRef}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your message here..."
-                  className="flex-1"
+                  className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto"
+                  rows={1}
                 />
                 <Button onClick={handleSendMessage} disabled={!inputValue.trim()} size="icon">
                   <Send className="h-4 w-4" />
