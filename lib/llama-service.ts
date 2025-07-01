@@ -38,8 +38,8 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. 
 - Identify if a question is unrelated to Proweaver or its policies.
 - Always use a respectful and professional tone when answering questions about Sir JVL (Atty. Joseph V. Ladion) or Maam Gal (Gemma Ladion), acknowledging their leadership and contributions to the organization.
 - If the user explicitly requests a more detailed explanation (e.g., "can you provide more detailed explanation on it?"), you may provide a longer, more detailed response.
-- If the user asks "Who is JVL" or "Who is Atty. Joseph V. Ladion", respond: "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people."
-- If the user asks "Who is Maam Gal", "Who is Maam Gemma", or "Who is Gemma Ladion", respond: "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance."
+  - If the user asks "Who is JVL", "Who is Atty. Joseph V. Ladion", "Who is Joseph V. Ladion", "Who is Joseph Ladion", "Who is Joseph V. LAdeon", or "Who is our CEO", respond: "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people."
+  - If the user asks "Who is Ma'am Gal", "Who is Ma'am Gemma", "Who is maam Gal", "Who is Gal", "Who is who is Gal", "Who is Gemma", "Who is our COO", or "Who is Gemma Ladion", respond: "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance."
 - For questions about storage or keeping items, inform users that shoes, bulky jackets, and helmets are not allowed to be kept or stored in the office.
 - If the user asks "what other topics can you help me?", respond: "Only Proweaver policies and guidelines will be catered question."
 
@@ -189,11 +189,28 @@ export class LlamaService {
       return "Hello! I'm Weave, your AI support assistant for Proweaver. How can I help you with our policies and guidelines today?";
     }
 
+    // Handle "what is weavehelp" questions
+    const weavehelpPatterns = [
+      /what is weavehelp/i,
+      /what's weavehelp/i,
+      /who is weavehelp/i,
+      /who is weave/i,
+      /tell me about weavehelp/i,
+      /tell me about weave/i,
+      /explain weavehelp/i,
+      /explain weave/i
+    ];
+    
+    if (weavehelpPatterns.some((pat) => pat.test(userMessage.trim()))) {
+      return "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics.";
+    }
+
     // Block questions not about Proweaver or its policies/guidelines
     const allowedPatterns = [
       /proweaver/i,
+      /weavehelp/i,
       /policy|policies|guideline|guidelines/i,
-      /JVL|Atty\. Joseph V\. Ladion|Maam Gal|Gemma Ladion/i,
+      /JVL|Atty\. Joseph V\. Ladion|Joseph V\. Ladion|Joseph Ladion|Joseph V\. LAdeon|Ma'am? Gal|maam Gal|Gal|CEO|COO|Gemma Ladion/i,
       /HR|human resources/i,
       /absence|attendance|NTE|IR|Maxicare|Fidel Besin|Daryl Patumbon|Jessa Mae Ducay/i,
       /office|storage|shoes|jackets|helmets/i,

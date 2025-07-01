@@ -52,9 +52,21 @@ export default function WeaveHelpChatbot() {
   }, [])
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+    // Auto-scroll to bottom when new messages are added
+    const scrollToBottom = () => {
+      if (scrollAreaRef.current) {
+        const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement
+        if (scrollElement) {
+          scrollElement.scrollTop = scrollElement.scrollHeight
+        } else {
+          // Fallback to direct scroll if radix viewport not found
+          scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+        }
+      }
     }
+    
+    // Use setTimeout to ensure DOM is updated before scrolling
+    setTimeout(scrollToBottom, 100)
   }, [messages])
 
   useEffect(() => {
