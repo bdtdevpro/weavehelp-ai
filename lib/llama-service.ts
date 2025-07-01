@@ -4,7 +4,7 @@ import { OpenAI } from "@llamaindex/openai";
 Settings.llm = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
   model: "gpt-4",
-  temperature: 0.2,
+  temperature: 0.4,
 });
 
 export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. Scan the files and extract relevant content based on the given question. Produce a 1-2 sentence response strictly based on information found in the provided documents, focusing on accuracy, relevance, and conciseness.
@@ -40,6 +40,8 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. 
 - If the user explicitly requests a more detailed explanation (e.g., "can you provide more detailed explanation on it?"), you may provide a longer, more detailed response.
   - If the user asks "Who is JVL", "Who is Atty. Joseph V. Ladion", "Who is Joseph V. Ladion", "Who is Joseph Ladion", "Who is Joseph V. LAdeon", or "Who is our CEO", respond: "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people."
   - If the user asks "Who is Ma'am Gal", "Who is Ma'am Gemma", "Who is maam Gal", "Who is Gal", "Who is who is Gal", "Who is Gemma", "Who is our COO", or "Who is Gemma Ladion", respond: "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance."
+  - If the user asks "Who are you?", respond: "I'm WeaveHelp or Weave, Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics."
+  - If the user asks "What is WeaveHelp?", "What's WeaveHelp?", "Who is WeaveHelp?", "Who is Weave?", "Tell me about WeaveHelp?", or "Explain WeaveHelp?", respond: "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics."
 - For questions about storage or keeping items, inform users that shoes, bulky jackets, and helmets are not allowed to be kept or stored in the office.
 - If the user asks "what other topics can you help me?", respond: "Only Proweaver policies and guidelines will be catered question."
 
@@ -133,7 +135,7 @@ async function initializeLlamaIndex(): Promise<ContextChatEngine> {
     console.log("LlamaCloudIndex created successfully");
 
     // Two-stage retrieval: get top 30, rerank to top 6
-    const retriever = index.asRetriever({ similarityTopK: 6 });
+    const retriever = index.asRetriever({ similarityTopK: 20 });
     console.log("Retriever created successfully");
 
     chatEngine = new ContextChatEngine({
@@ -157,6 +159,72 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
       setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs);
     })
   ]);
+}
+
+// Function to check instruction text for specific patterns and return responses
+function checkInstructionText(userMessage: string): string | null {
+  // Check for JVL/CEO questions based on instruction text
+  const jvlPatterns = [
+    /who is JVL/i,
+    /who is Atty\. Joseph V\. Ladion/i,
+    /who is Joseph V\. Ladion/i,
+    /who is Joseph Ladion/i,
+    /who is Joseph V\. LAdeon/i,
+    /who is our CEO/i
+  ];
+  
+  if (jvlPatterns.some((pat) => pat.test(userMessage))) {
+    return "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people.";
+  }
+  
+  // Check for Gemma/COO questions based on instruction text
+  const gemmaPatterns = [
+    /who is Ma'am Gal/i,
+    /who is Ma'am Gemma/i,
+    /who is maam Gal/i,
+    /who is Gal/i,
+    /who is who is Gal/i,
+    /who is Gemma/i,
+    /who is our COO/i,
+    /who is Gemma Ladion/i
+  ];
+  
+  if (gemmaPatterns.some((pat) => pat.test(userMessage))) {
+    return "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance.";
+  }
+  
+  // Check for "who are you?" questions
+  if (/who are you/i.test(userMessage)) {
+    return "I'm WeaveHelp or Weave, Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics.";
+  }
+  
+  // Check for WeaveHelp questions based on instruction text
+  const weavehelpPatterns = [
+    /what is weavehelp/i,
+    /what's weavehelp/i,
+    /who is weavehelp/i,
+    /who is weave/i,
+    /tell me about weavehelp/i,
+    /tell me about weave/i,
+    /explain weavehelp/i,
+    /explain weave/i
+  ];
+  
+  if (weavehelpPatterns.some((pat) => pat.test(userMessage))) {
+    return "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics.";
+  }
+  
+  // Check for "what other topics can you help me" based on instruction text
+  if (/what other topics can you help me/i.test(userMessage)) {
+    return "Only Proweaver policies and guidelines will be catered question.";
+  }
+  
+  // Check for storage questions based on instruction text
+  if (/storage|keeping items|shoes|bulky jackets|helmets/i.test(userMessage)) {
+    return "Shoes, bulky jackets, and helmets are not allowed to be kept or stored in the office.";
+  }
+  
+  return null; // No instruction-based response found
 }
 
 export class LlamaService {
@@ -189,23 +257,90 @@ export class LlamaService {
       return "Hello! I'm Weave, your AI support assistant for Proweaver. How can I help you with our policies and guidelines today?";
     }
 
-    // Handle "what is weavehelp" questions
-    const weavehelpPatterns = [
-      /what is weavehelp/i,
-      /what's weavehelp/i,
-      /who is weavehelp/i,
-      /who is weave/i,
-      /tell me about weavehelp/i,
-      /tell me about weave/i,
-      /explain weavehelp/i,
-      /explain weave/i
-    ];
+    // FIRST: Try to scan documents and get response from LlamaIndex for ALL questions
+    // (except greetings which are handled above)
+    let llamaError: Error | null = null;
+    let documentResponse: string | null = null;
     
-    if (weavehelpPatterns.some((pat) => pat.test(userMessage.trim()))) {
-      return "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics."; 
+    try {
+      console.log("Scanning documents FIRST for:", userMessage);
+      
+      // Try to initialize LlamaIndex if not already done
+      const engine = await initializeLlamaIndex();
+      
+      // Try LlamaIndex with timeout (100 seconds)
+      const timeoutMs = 100000; // 100 seconds
+      console.log(`Attempting LlamaIndex with ${timeoutMs}ms timeout...`);
+      // @deprecated
+      const response = await withTimeout(
+        engine.chat({
+          message: userMessage,
+        }),
+        timeoutMs
+      );
+    
+      console.log("Document response received:", response.response);
+      documentResponse = response.response;
+      
+      // If we got a valid response from documents, check if it's a "no information" response or generic AI response
+      if (documentResponse && documentResponse.trim().length > 0) {
+        // Check if the response indicates no information was found
+        const noInfoPatterns = [
+          /I'm sorry, but there's no information available about/i,
+          /no information available about/i,
+          /no information found/i,
+          /no information available in/i,
+          /not found in the documents/i,
+          /not available in the documents/i
+        ];
+        
+        // Check for generic AI responses that should be blocked
+        const genericAIPatterns = [
+          /I am OpenAI's language model/i,
+          /I am GPT-3/i,
+          /I am GPT-4/i,
+          /I am an AI language model/i,
+          /I am an artificial intelligence/i,
+          /I am a language model/i,
+          /I am ChatGPT/i,
+          /I am Claude/i,
+          /I am an AI assistant/i,
+          /I am an AI chatbot/i,
+          /I am a machine learning model/i,
+          /I am designed to assist users/i,
+          /I am trained by OpenAI/i,
+          /I am trained by Anthropic/i
+        ];
+        
+        if (documentResponse && noInfoPatterns.some((pat) => pat.test(documentResponse!))) {
+          console.log("Document response indicates no information found, checking instruction text...");
+          // Don't return this response, continue to check instruction text
+        } else if (documentResponse && genericAIPatterns.some((pat) => pat.test(documentResponse!))) {
+          console.log("Document response contains generic AI response, checking instruction text...");
+          // Don't return this response, continue to check instruction text
+        } else {
+          // Valid document response found, return it
+          return documentResponse;
+        }
+      }
+      
+      // If document scanning provided no response, check instruction text for specific patterns
+      console.log("No document response found, checking instruction text for patterns...");
+    } catch (error) {
+      console.error("Error or timeout from LlamaIndex:", error);
+      llamaError = error as Error;
     }
-
-    // Block questions not about Proweaver or its policies/guideliness
+    
+    // Only if document scanning failed or provided no response, then check patterns
+    // and refer to instruction text for specific responses
+    
+    // Check instruction text for specific patterns first
+    const instructionResponses = checkInstructionText(userMessage);
+    if (instructionResponses) {
+      return instructionResponses;
+    }
+    
+    // Block questions not about Proweaver or its policies/guidelines
     const allowedPatterns = [
       /proweaver/i,
       /weavehelp/i,
@@ -222,33 +357,6 @@ export class LlamaService {
     ];
     if (!allowedPatterns.some((pat) => pat.test(userMessage))) {
       return "I can only assist with questions about Proweaver's official policies and guidelines.";
-    }
-
-    let llamaError: Error | null = null;
-    
-    // First, try LlamaIndex
-    try {
-      console.log("Getting response for:", userMessage);
-      
-      // Try to initialize LlamaIndex if not already done
-      const engine = await initializeLlamaIndex();
-      
-      // Try LlamaIndex with timeout (100 seconds)
-      const timeoutMs = 100000; // 100 seconds
-      console.log(`Attempting LlamaIndex with ${timeoutMs}ms timeout...`);
-      // @deprecated
-      const response = await withTimeout(
-        engine.chat({
-          message: userMessage,
-        }),
-        timeoutMs
-      );
-    
-      console.log("Chat response received:", response.response);
-      return response.response;
-    } catch (error) {
-      console.error("Error or timeout from LlamaIndex:", error);
-      llamaError = error as Error;
     }
     
     // If LlamaIndex failed, try webhook
