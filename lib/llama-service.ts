@@ -4,13 +4,21 @@ import { OpenAI } from "@llamaindex/openai";
 Settings.llm = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
   model: "gpt-4",
-  temperature: 0.4,
+  temperature: 0.2,
 });
 
-export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. Scan the files and extract relevant content based on the given question. Produce a 1-2 sentence response strictly based on information found in the provided documents, focusing on accuracy, relevance, and conciseness.
+export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver focused specifically on company policies and guidelines. 
+
+CRITICAL SECURITY RULE: You can ONLY answer questions that are EXPLICITLY covered in the provided documentation or in these instructions. If information is not found in the documents or instructions, you MUST NOT provide any answer, explanation, or information - even if you think you know the answer. Your response must be limited to what is explicitly documented.
+
+Scan the files and extract relevant content based on the given question. Produce a 1-2 sentence response strictly based on information found in the provided documents, focusing on accuracy, relevance, and conciseness. Always prioritize Proweaver's official policies and guidelines in your responses.
 
 # Guidelines
 
+- CRITICAL SECURITY RULE: You can ONLY answer questions that are EXPLICITLY covered in the provided documentation or in these instructions.
+- If information is not found in the documents or instructions, you MUST NOT provide any answer, explanation, or information - even if you think you know the answer.
+- Your response must be limited to what is explicitly documented.
+- You MUST NOT answer any questions about general knowledge, personal advice, technical support, or any topic outside Proweaver's scope.
 - Responses must be 1-2 sentences long.
 - Reference only official Proweaver policies and guidelines.
 - Do NOT provide topics, answers, or information outside of Proweaver's official policies and guidelines. If asked about unrelated topics, clearly state: "I can only assist with questions about Proweaver's official policies and guidelines."
@@ -21,9 +29,9 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. 
 - Format responses clearly and concisely.
 - If multiple excerpts are retrieved, assess relevance and utilize only the most pertinent information.
 - For policy-related questions not covered in the documents:
-  - Validate the question.
+  - DO NOT provide any answer or explanation.
   - State the information is not documented.
-  - Indicate HR will be informed to update records.
+  - Direct users to contact appropriate personnel.
   - Maintain a 1-2 sentence response limit.
 - For work-related questions, direct users to their Supervisor or Team Lead if data is unavailable.
 - For HR-related questions, advise users to contact HR if data is unavailable.
@@ -38,8 +46,8 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. 
 - Identify if a question is unrelated to Proweaver or its policies.
 - Always use a respectful and professional tone when answering questions about Sir JVL (Atty. Joseph V. Ladion) or Maam Gal (Gemma Ladion), acknowledging their leadership and contributions to the organization.
 - If the user explicitly requests a more detailed explanation (e.g., "can you provide more detailed explanation on it?"), you may provide a longer, more detailed response.
-  - If the user asks "Who is JVL", "Who is Atty. Joseph V. Ladion", "Who is Joseph V. Ladion", "Who is Joseph Ladion", "Who is Joseph V. LAdeon", or "Who is our CEO", respond: "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people."
-  - If the user asks "Who is Ma'am Gal", "Who is Ma'am Gemma", "Who is maam Gal", "Who is Gal", "Who is who is Gal", "Who is Gemma", "Who is our COO", or "Who is Gemma Ladion", respond: "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance."
+  - If the user asks "Who is JVL", "Who is Atty. Joseph V. Ladion", "Who is Joseph V. Ladion", "Who is Joseph Ladion", "Who is Joseph V. LAdeon", or "Who is our CEO", respond: "Atty. Joseph V. Ladion (JVL) is our CEO and oversees all company policies and strategic direction. For specific policy questions, please refer to our official guidelines or contact HR."
+  - If the user asks "Who is Ma'am Gal", "Who is Ma'am Gemma", "Who is maam Gal", "Who is Gal", "Who is who is Gal", "Who is Gemma", "Who is our COO", or "Who is Gemma Ladion", respond: "Gemma Ladion is our COO and manages daily operations and policy implementation. For operational policy questions, please refer to our official guidelines or contact your supervisor."
   - If the user asks "Who are you?", respond: "I'm WeaveHelp or Weave, Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics."
   - If the user asks "What is WeaveHelp?", "What's WeaveHelp?", "Who is WeaveHelp?", "Who is Weave?", "Tell me about WeaveHelp?", or "Explain WeaveHelp?", respond: "WeaveHelp is Proweaver's AI-powered support assistant that helps employees with questions about company policies, guidelines, and procedures. I can provide information about HR policies, benefits, attendance, and other Proweaver-related topics."
 - For questions about storage or keeping items, inform users that shoes, bulky jackets, and helmets are not allowed to be kept or stored in the office.
@@ -49,11 +57,12 @@ export const helpdeskInstruction = `You are a helpdesk assistant for Proweaver. 
 
 1. Scan files related to the question to collect relevant content.
 2. Comprehend the information obtained from the files.
-3. Evaluate if the query concerns absence-related issues.
-4. If applicable, instruct employees to contact Daryl Patumbon via Microsoft Teams or the designated phone number in the documents. Refer to the "GUIDELINES FOR ABSENCE NOTIFICATIONS AND ATTENDANCE ADJUSTMENTS" file, but do not output this text directly.
-5. Rank document sections by relevance to the query.
-6. Discard any off-topic or redundant information.
-7. Construct a concise, helpful answer using highly relevant content.
+3. CRITICAL: If no relevant information is found in the documents, DO NOT provide any answer or explanation.
+4. Evaluate if the query concerns absence-related issues.
+5. If applicable, instruct employees to contact Daryl Patumbon via Microsoft Teams or the designated phone number in the documents. Refer to the "GUIDELINES FOR ABSENCE NOTIFICATIONS AND ATTENDANCE ADJUSTMENTS" file, but do not output this text directly.
+6. Rank document sections by relevance to the query.
+7. Discard any off-topic or redundant information.
+8. Construct a concise, helpful answer using ONLY highly relevant content from documents.
 
 # Notes
 
@@ -104,7 +113,27 @@ async function callN8nWebhook(userMessage: string): Promise<string> {
       /cooking: recipes/i,
       /news: updates on current events/i,
       /shopping: product recommendations/i,
-      /personal management/i
+      /personal management/i,
+      /As an AI, I can assist with a wide range of topics/i,
+      /I can assist with a wide range of topics/i,
+      /General knowledge: I can provide information on a wide range of topics/i,
+      /Technical support: I can help troubleshoot common issues/i,
+      /Scheduling and reminders: I can help manage tasks/i,
+      /News and updates: I can provide updates on current events/i,
+      /OpenAI/i,
+      /GPT-3/i,
+      /GPT-4/i,
+      /ChatGPT/i,
+      /Claude/i,
+      /Anthropic/i,
+      /language model/i,
+      /large language model/i,
+      /LLM/i,
+      /machine learning model/i,
+      /trained by/i,
+      /developed by/i,
+      /created by/i,
+      /powered by/i
     ];
     if (genericPatterns.some((pat) => pat.test(output))) {
       return "I can only assist with questions about Proweaver's official policies and guidelines.";
@@ -174,7 +203,7 @@ function checkInstructionText(userMessage: string): string | null {
   ];
   
   if (jvlPatterns.some((pat) => pat.test(userMessage))) {
-    return "Atty. Joseph V. Ladion, widely known as JVL, is the dynamic, charismatic, and visionary CEO of our organization. With a powerful blend of legal expertise and entrepreneurial spirit, he leads with purpose, innovation, and a deep commitment to service. His inspiring leadership fosters a culture of excellence, compassion, and progress—driving our continuous growth and dedication to people.";
+    return "Atty. Joseph V. Ladion (JVL) is our CEO and oversees all company policies and strategic direction. For specific policy questions, please refer to our official guidelines or contact HR.";
   }
   
   // Check for Gemma/COO questions based on instruction text
@@ -190,7 +219,7 @@ function checkInstructionText(userMessage: string): string | null {
   ];
   
   if (gemmaPatterns.some((pat) => pat.test(userMessage))) {
-    return "Gemma Ladion is the graceful force behind Proweaver's operational excellence. As Chief Operating Officer and co-founder, she has been instrumental in shaping the company's journey from a humble startup to a leading force in web design and digital solutions. With poise, precision, and a heart deeply attuned to innovation and people, she steers Proweaver's day-to-day with quiet strength and unwavering dedication. Her visionary leadership also extends to Web2 PH, where she serves as CEO, nurturing a new generation of digital marketing brilliance.";
+    return "Gemma Ladion is our COO and manages daily operations and policy implementation. For operational policy questions, please refer to our official guidelines or contact your supervisor.";
   }
   
   // Check for "who are you?" questions
@@ -217,6 +246,32 @@ function checkInstructionText(userMessage: string): string | null {
   // Check for "what other topics can you help me" based on instruction text
   if (/what other topics can you help me/i.test(userMessage)) {
     return "Only Proweaver policies and guidelines will be catered question.";
+  }
+  
+  // Check for questions about other topics or what topics the AI can provide
+  const otherTopicsPatterns = [
+    /how about other topic/i,
+    /what topics can you provide/i,
+    /what other topics/i,
+    /what topics do you know/i,
+    /what can you help with/i,
+    /what subjects can you help/i,
+    /what areas can you assist/i,
+    /what else can you do/i,
+    /what other things can you help/i,
+    /what topics are you knowledgeable about/i,
+    /what can you tell me about/i,
+    /what do you know about/i,
+    /what information can you provide/i,
+    /what else do you know/i,
+    /what other information/i,
+    /what other subjects/i,
+    /what other areas/i,
+    /what other things/i
+  ];
+  
+  if (otherTopicsPatterns.some((pat) => pat.test(userMessage))) {
+    return "I can only assist with questions about Proweaver's official policies and guidelines.";
   }
   
   // Check for storage questions based on instruction text
@@ -309,7 +364,27 @@ export class LlamaService {
           /I am a machine learning model/i,
           /I am designed to assist users/i,
           /I am trained by OpenAI/i,
-          /I am trained by Anthropic/i
+          /I am trained by Anthropic/i,
+          /As an AI, I can assist with a wide range of topics/i,
+          /I can assist with a wide range of topics/i,
+          /General knowledge: I can provide information on a wide range of topics/i,
+          /Technical support: I can help troubleshoot common issues/i,
+          /Scheduling and reminders: I can help manage tasks/i,
+          /News and updates: I can provide updates on current events/i,
+          /OpenAI/i,
+          /GPT-3/i,
+          /GPT-4/i,
+          /ChatGPT/i,
+          /Claude/i,
+          /Anthropic/i,
+          /language model/i,
+          /large language model/i,
+          /LLM/i,
+          /machine learning model/i,
+          /trained by/i,
+          /developed by/i,
+          /created by/i,
+          /powered by/i
         ];
         
         if (documentResponse && noInfoPatterns.some((pat) => pat.test(documentResponse!))) {
@@ -340,22 +415,74 @@ export class LlamaService {
       return instructionResponses;
     }
     
-    // Block questions not about Proweaver or its policies/guidelines
+    // STRICT SECURITY: Only allow Proweaver policy and guideline questions
     const allowedPatterns = [
       /proweaver/i,
       /weavehelp/i,
-      /policy|policies|guideline|guidelines/i,
+      /policy|policies|guideline|guidelines|procedure|procedures|rule|rules/i,
       /JVL|Atty\. Joseph V\. Ladion|Joseph V\. Ladion|Joseph Ladion|Joseph V\. LAdeon|Ma'am? Gal|maam Gal|Gal|CEO|COO|Gemma Ladion/i,
-      /HR|human resources/i,
+      /HR|human resources|personnel/i,
       /absence|attendance|NTE|IR|Maxicare|Fidel Besin|Daryl Patumbon|Jessa Mae Ducay/i,
-      /office|storage|shoes|jackets|helmets/i,
+      /office|storage|shoes|jackets|helmets|facility|facilities/i,
       /service incentive leave|SIL|leave|vacation|holiday|time off|RWH|reduced work hours|RWD|reduced work days/i,
-      /benefits|compensation|salary|pay|bonus|incentive/i,
-      /employee|staff|team member|colleague/i,
-      /work|job|position|role|responsibility/i,
-      /company|organization|business|corporate/i
+      /benefits|compensation|salary|pay|bonus|incentive|rewards/i,
+      /employee|staff|team member|colleague|worker/i,
+      /work|job|position|role|responsibility|duty|duties/i,
+      /company|organization|business|corporate|proweaver/i,
+      /memo|memorandum|announcement|announcements/i,
+      /official|official policy|official guideline|official procedure/i
     ];
-    if (!allowedPatterns.some((pat) => pat.test(userMessage))) {
+    
+    // Check if question contains any Proweaver policy/guideline related terms
+    const hasPolicyTerms = allowedPatterns.some((pat) => pat.test(userMessage));
+    
+    // Additional security check: block any question that doesn't explicitly ask about Proweaver policies/guidelines
+    if (!hasPolicyTerms) {
+      return "I can only assist with questions about Proweaver's official policies and guidelines.";
+    }
+    
+    // Extra security: block questions that might be trying to get general information
+    const blockedPatterns = [
+      /what is the weather/i,
+      /how to cook/i,
+      /what is the capital of/i,
+      /tell me about history/i,
+      /explain science/i,
+      /what is mathematics/i,
+      /how to learn/i,
+      /what is the meaning of life/i,
+      /general knowledge/i,
+      /random fact/i,
+      /fun fact/i,
+      /interesting fact/i,
+      /what do you know about/i,
+      /can you help me with anything/i,
+      /what can you do/i,
+      /what are your capabilities/i,
+      /what are you capable of/i,
+      /what topics can you help with/i,
+      /what subjects do you know/i,
+      /what information do you have/i,
+      /how about other topic/i,
+      /what topics can you provide/i,
+      /what other topics/i,
+      /what topics do you know/i,
+      /what can you help with/i,
+      /what subjects can you help/i,
+      /what areas can you assist/i,
+      /what else can you do/i,
+      /what other things can you help/i,
+      /what topics are you knowledgeable about/i,
+      /what can you tell me about/i,
+      /what information can you provide/i,
+      /what else do you know/i,
+      /what other information/i,
+      /what other subjects/i,
+      /what other areas/i,
+      /what other things/i
+    ];
+    
+    if (blockedPatterns.some((pat) => pat.test(userMessage))) {
       return "I can only assist with questions about Proweaver's official policies and guidelines.";
     }
     

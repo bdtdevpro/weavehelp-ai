@@ -172,7 +172,7 @@ export default function WeaveHelpChatbot() {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-foreground">WeaveHelp</h1>
-                  <p className="text-sm text-muted-foreground">AI Support Assistant</p>
+                  <p className="text-sm text-muted-foreground">AI Support Assistant for Proweaver Policies and Guidelines</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
