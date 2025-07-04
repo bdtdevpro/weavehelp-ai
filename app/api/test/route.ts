@@ -3,10 +3,10 @@ import { getRetriever } from '@/lib/llama-service';
 
 export async function GET() {
   try {
-    console.log('Testing direct retrieval from LlamaCloud...');
+    // console.log('Testing direct retrieval from LlamaCloud...');
     
-    const retriever = getRetriever();
-    console.log('Retriever obtained, testing retrieval...');
+    const retriever = await getRetriever();
+    // console.log('Retriever obtained, testing retrieval...');
     
     const nodes = await retriever.retrieve("hello");
     console.log('Retrieved nodes:', nodes.length);
@@ -23,7 +23,7 @@ export async function GET() {
       success: true, 
       nodeCount: nodes.length,
       message: `Successfully retrieved ${nodes.length} nodes from the index`,
-      firstNodePreview: nodes[0]?.node?.text?.substring(0, 200) || "No text available"
+      firstNodePreview: (nodes[0]?.node as any)?.text?.substring(0, 200) || "No text available"
     });
   } catch (error) {
     console.error('Error testing direct retrieval:', error);

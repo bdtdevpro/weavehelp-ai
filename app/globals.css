@@ -111,3 +111,42 @@ body {
   background: #444950;
   border-radius: 8px;
 }
+
+/* Hide Next.js Dev Tools badge and all Next.js development elements */
+[data-nextjs-toast-wrapper],
+[data-next-badge-root],
+[data-nextjs-dev-tools-button],
+[data-nextjs-toast-wrapper] *,
+[data-next-badge-root] *,
+[data-nextjs-dev-tools-button] * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Target any element with nextjs in the data attribute */
+[data-*="nextjs"],
+[data-*="next-js"],
+[data-*="next"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide any toast-like elements */
+[data-toast],
+[data-toast-wrapper],
+[data-toast-container] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

@@ -32,7 +32,7 @@ export default function WeaveHelpChatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "Hello! I'm Weave, your AI support assistant. How can I help you today?",
+      content: "Hello! I'm Weavehelp, your AI support assistant for company policies and guidelines. How can I help you today?",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -172,7 +172,7 @@ export default function WeaveHelpChatbot() {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-foreground">WeaveHelp</h1>
-                  <p className="text-sm text-muted-foreground">AI Support Assistant for Proweaver Policies and Guidelines</p>
+                  <p className="text-sm text-foreground">AI Support Assistant for Proweaver Policies and Guidelines</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">

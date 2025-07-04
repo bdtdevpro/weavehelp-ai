@@ -12,12 +12,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Processing chat request:', { message: message.substring(0, 100) + '...' });
+    // console.log('Processing chat request:', { message: message.substring(0, 100) + '...' });
 
     const llamaService = LlamaService.getInstance();
     const response = await llamaService.getResponse(message);
 
-    console.log('Chat response generated successfully');
+    // console.log('Chat response generated successfully');
 
     return NextResponse.json({ response });
   } catch (error) {
@@ -37,12 +37,12 @@ export async function POST(request: NextRequest) {
 // Test endpoint to check if the service is working
 export async function GET() {
   try {
-    console.log('Testing service...');
+    // console.log('Testing service...');
     
     const llamaService = LlamaService.getInstance();
     const response = await llamaService.getResponse("test message");
     
-    console.log('Service test successful');
+    // console.log('Service test successful');
 
     return NextResponse.json({ 
       success: true, 
